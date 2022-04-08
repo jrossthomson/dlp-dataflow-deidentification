@@ -73,3 +73,6 @@ secrets.yml
 # cloud build 
 kek.json
 tek.json
+deid-template.json
+demo_key.json
+inspect-template.json

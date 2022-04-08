@@ -40,8 +40,29 @@ gcloud config set project <project_id>
 sh deploy-data-tokeninzation-solution.sh
 ```
 
- You can run some quick [validations](https://cloud.google.com/solutions/validating-de-identified-data-bigquery-re-identifying-pii-data#validating_the_de-identified_dataset_in_bigquery) in BigQuery table to check on tokenized data.  
+ You can run some quick [validations](https://cloud.google.com/solutions/validating-de-identified-data-bigquery-re-identifying-pii-data#validating_the_de-identified_dataset_in_bigquery) in BigQuery table to check on tokenized data. o
 
+ To display the header row of the CSV file that you used to create the schema:
+ ```
+ gsutil cat gs://${PROJECT_ID}-demo-data/CCRecords_1564602825.csv | head -1
+ ```
+The output is the following:
+```
+ID,Card Type Code,Card Type Full Name,Issuing Bank,Card Number,Card Holder's Name,Issue Date,Expiry Date,Billing Date,Card PIN,Credit Limit,Age,SSN,JobTitle,Additional Details
+ ```
+And to validate the BigQuery import try:
+```
+bq query "select ID, Card_Number from demo_dataset.CCRecords_1564602825 limit 2"
+```
+With output like:
+```
++-------+----------------------------------------------+
+|  ID   |                 Card_Number                  |
++-------+----------------------------------------------+
+| 61648 | AXSkjBze+6B4EU9Vz6oNewKZfOh4V2r6ZDV/kyZWFw== |
+| 61666 | AUzTwU6KIiLlMWEcs7vJe+6FHw5ZBMBGqs6zxRkvV1aA |
++-------+----------------------------------------------+
+```
 For re-identification (getting back the original data in a Pub/Sub topic), please follow this instruction [here](https://cloud.google.com/solutions/validating-de-identified-data-bigquery-re-identifying-pii-data#re-identifying_the_dataset_from_bigquery).  
 
 ## V2 Solution By Using In Built Java Beam Transform
@@ -72,10 +93,11 @@ gradle run -DmainClass=com.google.swarm.tokenization.DLPTextToBigQueryStreamingV
 ```
 
 ## ReIdentification From BigQuery 
-You can. use the pipeline to read from BgQuery table and publish the re-identification data in a secure pub sub topic.
+You can use the pipeline to read from a BigQuery table and publish the re-identification data in a secure 
+Pub/Sub topic.
 
-Export the Standard SQL Query to read data from bigQuery
-One example from our solution guide:
+Export the Standard SQL Query to read data from BigQuery
+
 ```
 export QUERY="select id,card_number,card_holders_name from \`${PROJECT_ID}.${BQ_DATASET_NAME}.100000CCRecords\` where safe_cast(credit_limit as int64)>100000 and safe_cast (age as int64)>50 group by id,card_number,card_holders_name limit 10"
 ```
